@@ -3,22 +3,20 @@ import numpy as np
 import math
 import torch.nn as nn
 from sklearn.metrics import mutual_info_score
-# 互信息损失类
+
 class MutualInformationLoss(nn.Module):
     def __init__(self, n_bins=10):
         super(MutualInformationLoss, self).__init__()
         self.n_bins = n_bins
 
     def forward(self, x, y):
-        # 将特征转换为概率分布
+  
         x = x.detach().cpu().numpy()
         y = y.detach().cpu().numpy()
         
-        # 将连续值离散化
         x_binned = np.digitize(x, np.linspace(x.min(), x.max(), self.n_bins))
         y_binned = np.digitize(y, np.linspace(y.min(), y.max(), self.n_bins))
         
-        # 计算互信息
         mi = 0.0
         for i in range(x.shape[0]):
             mi += mutual_info_score(x_binned[i], y_binned[i])
@@ -58,14 +56,12 @@ def train_one_epoch(model, dataloader, optimizer, criterion, device, mi_loss, mo
         outputs = model(inputs)
         
         if mode == 'pre':
-            # 计算重建损失
+   
             time_loss = criterion(outputs['time_reconstructed'], inputs)
             freq_loss = criterion(outputs['freq_reconstructed'], outputs['original_freq'])  # 频域重建损失
             
-            # 计算互信息损失
             mi = mi_loss(outputs['time_features'], outputs['freq_features'])
-            
-            # 计算正则化损失
+
             time_reg = torch.mean(torch.abs(outputs['time_reconstructed']))
             freq_reg = torch.mean(torch.abs(outputs['freq_reconstructed']))
             regularization_loss = time_reg + freq_reg
@@ -81,7 +77,6 @@ def train_one_epoch(model, dataloader, optimizer, criterion, device, mi_loss, mo
             loss.backward()
             optimizer.step()
         else:
-            # 确保 targets 是1D的
             targets = targets.squeeze()
             loss = criterion(outputs, targets)
             total_time_loss += loss.item()
@@ -91,7 +86,6 @@ def train_one_epoch(model, dataloader, optimizer, criterion, device, mi_loss, mo
     else:
         return total_time_loss / len(dataloader)
 
-# evaluate 函数修改
 def evaluate(model, dataloader, criterion, mi_loss, device, mode='pre'):
     model.eval()
     total_time_loss = 0
@@ -107,7 +101,7 @@ def evaluate(model, dataloader, criterion, mi_loss, device, mode='pre'):
             
             if mode == 'pre':
                 time_loss = criterion(outputs['time_reconstructed'], inputs)
-                freq_loss = criterion(outputs['freq_reconstructed'], outputs['original_freq'])  # 频域重建损失
+                freq_loss = criterion(outputs['freq_reconstructed'], outputs['original_freq'])
                 mi = mi_loss(outputs['time_features'], outputs['freq_features'])
                 
                 # 计算正则化损失
@@ -130,7 +124,6 @@ def evaluate(model, dataloader, criterion, mi_loss, device, mode='pre'):
         return total_time_loss / len(dataloader)
 
 class AverageMeter:
-    """计算和存储平均值和当前值"""
     def __init__(self):
         self.reset()
 
@@ -147,14 +140,12 @@ class AverageMeter:
         self.avg = self.sum / self.count
 
 def log_metrics(epoch, metrics, mode='train'):
-    """记录指标"""
     print(f'Epoch {epoch} {mode}:', end=' ')
     for key, value in metrics.items():
         print(f'{key}: {value:.4f}', end=' ')
     print()
 
 def get_learning_rate(optimizer):
-    """获取当前学习率"""
     for param_group in optimizer.param_groups:
         return param_group['lr']
         
