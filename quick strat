@@ -1,0 +1,6 @@
+启动预训练
+python train.py --mode pre --file_path train/sub1_comp.mat --data_key train_data --input_channels 62 --tcn_channels "[62, 124, 62]" --transformer_layers 2 --transformer_heads 2 --d_model 62 --use_transformer 1 --batch_size 64 --epochs 100 --lr 0.01 --share_weights 1 --window_size 1000 --stride 500
+启动微调
+python train.py --mode fin --file_path train/sub3_comp.mat --data_key train_data --label_key train_dg --input_channels 64 --tcn_channels "[64, 128, 64]" --transformer_layers 2 --transformer_heads 2 --d_model 64 --use_transformer 1 --batch_size 64 --epochs 1000 --lr 0.001 --share_weights 1 --window_size 1000 --stride 500 --pretrained_model_path model/best_pretrained_model.pth --num_regression_targets 5
+启动测试
+python test.py --file_path train/sub3_comp.mat --data_key test_data --input_channels 64 --tcn_channels "[64, 128, 64]" --transformer_layers 2 --transformer_heads 2 --d_model 64 --use_transformer 1 --finetuned_model_path model/best_finetuned_model.pth --num_regression_targets 5 --batch_size 64 --output_path predictions.npy --window_size 1000 --stride 500 --share_weights 1
