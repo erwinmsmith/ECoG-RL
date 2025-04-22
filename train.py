@@ -36,7 +36,7 @@ def main(args):
             stride=args.stride
         )
         
-        # 按时间顺序划分训练集和验证集（验证集占20%）
+       
         train_size = int(len(dataset) * 0.8)
         train_dataset = torch.utils.data.Subset(dataset, range(train_size))
         val_dataset = torch.utils.data.Subset(dataset, range(train_size, len(dataset)))
@@ -46,24 +46,24 @@ def main(args):
         
         optimizer = optim.Adam(model.parameters(), lr=args.lr)
         criterion = nn.MSELoss()
-        mi_loss = MutualInformationLoss(n_bins=10)  # 互信息损失
+        mi_loss = MutualInformationLoss(n_bins=10) 
         
-        # 学习率调度和早停
+
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.8, patience=5, verbose=True)
         early_stopping = EarlyStopping(patience=20, delta=0.001)
         
         for epoch in range(args.epochs):
-            # 训练阶段
+
             train_time_loss, train_freq_loss, train_mi_loss, train_reg_loss = train_one_epoch(model, train_dataloader, optimizer, criterion, device, mi_loss, mode='pre')
             
-            # 验证阶段
+
             val_time_loss, val_freq_loss, val_mi_loss, val_reg_loss = evaluate(model, val_dataloader, criterion, mi_loss, device, mode='pre')
             
-            # 计算总损失
+
             train_total_loss = train_time_loss + train_freq_loss + train_mi_loss + train_reg_loss
             val_total_loss = val_time_loss + val_freq_loss + val_mi_loss + val_reg_loss
             
-            # 获取当前学习率
+
             current_lr = optimizer.param_groups[0]['lr']
             
             print(f'Epoch {epoch+1}, LR: {current_lr:.6f}, '
@@ -78,7 +78,7 @@ def main(args):
                   f'Val MI Loss: {val_mi_loss:.4f}, '
                   f'Val Reg Loss: {val_reg_loss:.4f}')
             
-            # 更新学习率和早停检查
+
             scheduler.step(val_total_loss)
             early_stopping(val_total_loss, model, 'model/best_pretrained_model.pth')
             if early_stopping.early_stop:
@@ -136,7 +136,7 @@ def main(args):
                 inputs, targets = batch
                 inputs, targets = inputs.to(device), targets.to(device)
                 
-                # 确保目标标签是 float32
+      
                 targets = targets.float()
                 
                 optimizer.zero_grad()
@@ -155,7 +155,7 @@ def main(args):
                     inputs, targets = batch
                     inputs, targets = inputs.to(device), targets.to(device)
                     
-                    # 确保目标标签是 float32
+        
                     targets = targets.float()
                     
                     outputs = model(inputs)
